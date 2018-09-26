@@ -1,14 +1,13 @@
 # $FreeBSD$
 
 PORTNAME=	lazylibrarian
-PORTVERSION=	2.1
+PORTVERSION=	9.3.0
 CATEGORIES=	deskutils
 
 MAINTAINER=	joshruehlig@gmail.com
 COMMENT=	An automated book downloader for SABnzbd.
 
-LICENSE=	GPLv3 PSFL
-LICENSE_COMB=	multi
+LICENSE=	GPLv3
 
 RUN_DEPENDS=	${PYTHON_PKGNAMEPREFIX}sqlite3>0:${PORTSDIR}/databases/py-sqlite3
 
@@ -17,12 +16,12 @@ USES=	python:2.6-2.7
 USE_GITHUB=     yes
 GH_ACCOUNT=     DobyTang
 GH_PROJECT=     LazyLibrarian
-GH_COMMIT=      aff78ec
+GH_COMMIT=      6c5945e
 GH_TAGNAME=     ${GH_COMMIT}
 
 NO_BUILD=	yes
-PLIST_SUB=	PORTNAME=${PORTNAME} USER=${USERS} GROUP=${GROUPS}
-SUB_LIST=	PORTNAME=${PORTNAME} USER=${USERS} GROUP=${GROUPS} PYTHON_CMD=${PYTHON_CMD}
+PLIST_SUB=	PORTNAME=${PORTNAME} USERS=${USERS} GROUPS=${GROUPS}
+SUB_LIST=	PORTNAME=${PORTNAME} USERS=${USERS} GROUPS=${GROUPS} PYTHON_CMD=${PYTHON_CMD}
 SUB_FILES=	pkg-message
 USE_RC_SUBR=	${PORTNAME}
 
@@ -32,8 +31,7 @@ GROUPS=		${USERS}
 .include <bsd.port.pre.mk>
 
 do-install:
-	${INSTALL} -d ${STAGEDIR}${DATADIR}
-	${MKDIR} ${STAGEDIR}${DATADIR}/LazyLibrarian
-	cd ${WRKSRC} && ${COPYTREE_SHARE} \* ${STAGEDIR}${DATADIR}/LazyLibrarian
+	${MKDIR} ${STAGEDIR}${DATADIR}/${GH_PROJECT}
+	cd ${WRKSRC} && ${COPYTREE_SHARE} . ${STAGEDIR}${DATADIR}/${GH_PROJECT}
 
 .include <bsd.port.post.mk>

@@ -2,6 +2,7 @@ from subprocess import Popen, PIPE
 import json
 import time
 import urllib2
+import ssl
 
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse
@@ -48,6 +49,7 @@ class OAuthTransport(jsonrpclib.jsonrpc.SafeTransport):
         req = urllib2.Request(request.to_url())
         req.add_header('Content-Type', 'text/json')
         req.add_data(request_body)
+        ssl._create_default_https_context = ssl._create_unverified_context
         f = urllib2.urlopen(req)
         return(self.parse_response(f))
 
@@ -251,59 +253,19 @@ def stop(request, plugin_id):
         }), content_type='application/json')
 
 
-def edit(request, plugin_id):
+def open_view(request, plugin_id):
     (lazylibrarian_key,
     lazylibrarian_secret) = utils.get_lazylibrarian_oauth_creds()
     url = utils.get_rpc_url(request)
     trans = OAuthTransport(url, key=lazylibrarian_key,
         secret=lazylibrarian_secret)
+    server = jsonrpclib.Server(url, transport=trans)
+    jail = json.loads(server.plugins.jail.info(plugin_id))[0]
+    jail_ipv4 = jail['fields']['jail_ipv4'].split('/', 1)[0]
 
-    """
-    Get the LazyLibrarian object
-    If it does not exist create a new entry
-    """
-    try:
-        lazylibrarian = models.LazyLibrarian.objects.order_by('-id')[0]
-    except IndexError:
-        lazylibrarian = models.LazyLibrarian.objects.create()
-
-    try:
-        server = jsonrpclib.Server(url, transport=trans)
-        jail_path = server.plugins.jail.path(plugin_id)
-        jail = json.loads(server.plugins.jail.info(plugin_id))[0]['fields']
-        jail_ipv4 = jail['jail_ipv4'].split('/')[0]
-        auth = server.plugins.is_authenticated(
-            request.COOKIES.get("sessionid", "")
-            )
-        assert auth
-    except Exception as e:
-        raise
-
-    if request.method == "GET":
-        form = forms.LazyLibrarianForm(instance=lazylibrarian,
-        jail_path=jail_path)
-        return render(request, "edit.html", {
-            'form': form,
-            'ipv4': jail_ipv4
-        })
-
-    if not request.POST:
-        return JsonResponse(request, error=True, message="A problem occurred.")
-
-    form = forms.LazyLibrarianForm(request.POST,
-        instance=lazylibrarian,
-        jail_path=jail_path)
-    if form.is_valid():
-        form.save()
-
-        cmd = "%s restart" % utils.lazylibrarian_control
-        pipe = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE,
-            shell=True, close_fds=True)
-
-        return JsonResponse(request, error=True,
-            message="LazyLibrarian settings successfully saved.")
-
-    return JsonResponse(request, form=form)
+    return render(request, "open.html", {
+        'ipv4': jail_ipv4,
+    })
 
 
 def treemenu(request, plugin_id):
@@ -337,7 +299,7 @@ def treemenu(request, plugin_id):
         'append_to': 'plugins',
         'icon': reverse('treemenu_icon', kwargs={'plugin_id': plugin_id}),
         'type': 'pluginsfcgi',
-        'url': reverse('lazylibrarian_edit', kwargs={'plugin_id': plugin_id}),
+        'url': reverse('lazylibrarian_open', kwargs={'plugin_id': plugin_id}),
         'kwargs': {'plugin_name': 'lazylibrarian', 'plugin_id': plugin_id },
     }
 

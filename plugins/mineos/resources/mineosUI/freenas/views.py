@@ -2,6 +2,7 @@ from subprocess import Popen, PIPE
 import json
 import time
 import urllib2
+import ssl
 import os
 
 from django.core.urlresolvers import reverse
@@ -25,13 +26,12 @@ def _linprocfs_check(linprocfs_path):
 
 def _linprocfs_mount(server, plugin_id):
     try:
-        linprocfs_path = '/usr/compat/linux/proc'
-        linprocfs = _linprocfs_check(linprocfs_path)
+        linprocfs = _linprocfs_check(utils.linprocfs_path)
         if linprocfs is False:
-            server.fs.linprocfs(plugin_id, linprocfs_path)
+            server.fs.linprocfs(plugin_id, utils.linprocfs_path)
     except:
         jail_path = server.plugins.jail.path(plugin_id)
-        linprocfs_path = linprocfs_path.lstrip('/')
+        linprocfs_path = utils.linprocfs_path.lstrip('/')
         linprocfs_path = os.path.join(jail_path, linprocfs_path)
         return HttpResponse(simplejson.dumps({
             'error': True,
@@ -71,6 +71,7 @@ class OAuthTransport(jsonrpclib.jsonrpc.SafeTransport):
         req = urllib2.Request(request.to_url())
         req.add_header('Content-Type', 'text/json')
         req.add_data(request_body)
+        ssl._create_default_https_context = ssl._create_unverified_context
         f = urllib2.urlopen(req)
         return(self.parse_response(f))
 
@@ -304,6 +305,8 @@ def edit(request, plugin_id):
         jail_path = server.plugins.jail.path(plugin_id)
         jail = json.loads(server.plugins.jail.info(plugin_id))[0]['fields']
         jail_ipv4 = jail['jail_ipv4'].split('/')[0]
+        linprocfs_path = utils.linprocfs_path.lstrip('/')
+        linprocfs_path = os.path.join(jail_path, linprocfs_path)
         if mineos.mineos_ssl:
                 mineos_scheme = "https"
         else:
@@ -323,7 +326,8 @@ def edit(request, plugin_id):
             'form': form,
             'ipv4': jail_ipv4,
             'scheme': mineos_scheme,
-            'port': mineos_port
+            'port': mineos_port,
+            'linprocfs_path': linprocfs_path
         })
 
     if not request.POST:

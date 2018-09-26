@@ -1,35 +1,35 @@
 #!/bin/sh
 #
-# PROVIDE: %%PORTNAME%%
+# PROVIDE: mineos
 # REQUIRE: LOGIN
 # KEYWORD: shutdown
 #
 # Add the following lines to /etc/rc.conf.local or /etc/rc.conf
 # to enable this service:
 #
-# %%PORTNAME%%_enable (bool):		Set to NO by default.
+# mineos_enable (bool):		Set to NO by default.
 # 				Set it to YES to enable it.
 
 . /etc/rc.subr
-name="%%PORTNAME%%"
+name="mineos"
 rcvar="${name}_enable"
 load_rc_config $name
 
-: ${%%PORTNAME%%_enable:="NO"}
+: ${mineos_enable:="NO"}
 
-mineos_base_dir=$(grep -e "^misc.base_directory *= *" %%PREFIX%%/etc/%%PORTNAME%%.conf | cut -d '=' -f2)
-pidfile="/var/run/%%PORTNAME%%.pid"
-command="%%PYTHON_CMD%%"
-command_args="$mineos_dir/mineos/server.py -c %%PREFIX%%/etc/%%PORTNAME%%.conf"
-extra_commands="update"
-update_cmd="%%PORTNAME%%_update"
+pidfile="/var/run/mineos.pid"
+command="%%LOCALBASE%%/bin/node"
+procname="mineos"
 
 start_precmd="export PATH=$PATH:%%PREFIX%%/bin"
-start_postcmd="%%PYTHON_CMD%% %%DATADIR%%/mineos/mineos_console.py -d $mineos_base_dir restore && %%PYTHON_CMD%% %%DATADIR%%/mineos/mineos_console.py -d $mineos_base_dir start"
-stop_precmd="export PATH=$PATH:%%PREFIX%%/bin && %%PYTHON_CMD%% %%DATADIR%%/mineos/mineos_console.py -d $mineos_base_dir stop"
+command_args="%%DATADIR%%/mineos-node/service.js start"
 
-%%PORTNAME%%_update() {
-	%%PREFIX%%/bin/git --git-dir=$mineos_dir/mineos/.git --work-tree=$mineos_dir/mineos pull
+extra_commands="update"
+update_cmd="mineos_update"
+mineos_update() {
+	%%PREFIX%%/bin/git --git-dir=%%DATADIR%%/mineos-node/.git --work-tree=%%DATADIR%%/mineos-node pull
+	${start_precmd}
+	CXX=c++ %%LOCALBASE%%/bin/npm --prefix %%DATADIR%%/mineos-node update --python=%%PYTHON_CMD%%
 }
 
 run_rc_command "$1"

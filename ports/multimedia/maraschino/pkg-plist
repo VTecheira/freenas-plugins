@@ -1,4 +1,3 @@
-@unexec %D/etc/rc.d/%%PORTNAME%% forcestop 2>/dev/null || true
 %%DATADIR%%/%%PORTNAME%%/.gitignore
 %%DATADIR%%/%%PORTNAME%%/AUTHORS
 %%DATADIR%%/%%PORTNAME%%/LICENSE
@@ -824,4 +823,4 @@
 %%DATADIR%%/%%PORTNAME%%/templates/xbmcmm/tvshow-show.html
 %%DATADIR%%/%%PORTNAME%%/xbmcmm.py
 @unexec rm -r %D/share/%%PORTNAME%%
-@exec chown -R %%USER%%:%%GROUP%% %D/share/%%PORTNAME%%/*
+@exec chown -R %%USERS%%:%%GROUPS%% %D/share/%%PORTNAME%%/*

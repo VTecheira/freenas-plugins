@@ -11,7 +11,7 @@ class Subsonic(models.Model):
     enable = models.BooleanField(default=False)
     subsonic_max_memory = models.IntegerField(
         verbose_name="Max Memory (MB)",
-        default=150,
+        default=100,
         )
     subsonic_ssl = models.BooleanField(
         verbose_name="Enable SSL",
@@ -35,9 +35,4 @@ class Subsonic(models.Model):
         verbose_name="Context Path",
         max_length=120,
         default="/",
-        )
-    subsonic_locale = models.CharField(
-        verbose_name="Locale",
-        max_length=120,
-        default="en_US.UTF-8",
         )

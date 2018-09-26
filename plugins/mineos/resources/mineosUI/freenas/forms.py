@@ -16,7 +16,6 @@ class MineOSForm(forms.ModelForm):
         model = models.MineOS
         widgets = {
             'mineos_port': forms.widgets.TextInput(),
-            'mineos_delay': forms.widgets.TextInput(),
         }
         exclude = (
             'enable',
@@ -27,8 +26,7 @@ class MineOSForm(forms.ModelForm):
         super(MineOSForm, self).__init__(*args, **kwargs)
 
         self.fields['mineos_cert'].widget = \
-        self.fields['mineos_key'].widget = \
-        self.fields['mineos_log'].widget = forms.widgets.TextInput(attrs={
+        self.fields['mineos_key'].widget = forms.widgets.TextInput(attrs={
             'data-dojo-type': 'freeadmin.form.PathSelector',
             'root': self.jail_path,
             'dirsonly': 'false',
@@ -67,19 +65,10 @@ class MineOSForm(forms.ModelForm):
                 settings[info.get("field")] = value
 
         with open(settingsfile, 'w') as f:
-            f.write('[global]\n')
-            f.write('server.socket_host = "0.0.0.0"\n')
-            f.write('server.socket_port = %d\n' % (obj.mineos_port, ))
-            f.write('server.commit_delay = %d\n' % (obj.mineos_delay, ))
-            f.write('log.error_file = "%s"\n' % (obj.mineos_log, ))
-            f.write('server.ssl_module = "builtin"\n')
-            f.write('server.ssl_certificate = "%s"\n' % (obj.mineos_cert, ))
-            f.write('server.ssl_private_key = "%s"\n' % (obj.mineos_key, ))
-            f.write('server.ssl_ca_certificate =\n')
-            f.write('server.ssl_certificate_chain =\n')
-            f.write('misc.server_as_daemon = True\n')
-            f.write('misc.pid_file = "/var/run/mineos.pid"\n')
-            f.write('misc.require_https = %r\n' % (obj.mineos_ssl, ))
-            f.write('misc.base_directory = "%s"\n' % (obj.mineos_basedir, ))
-            f.write('misc.localization = "%s"\n' % (obj.mineos_locale, ))
-            f.write('webui.mask_password = %r' % (obj.mineos_mask, ))
+            f.write("socket_host = '0.0.0.0'\n")
+            f.write("socket_port = %d\n" % (obj.mineos_port, ))
+            f.write("use_https = %s\n" % (str(obj.mineos_ssl).lower(), ))
+            f.write("ssl_certificate = '%s'\n" % (obj.mineos_cert, ))
+            f.write("ssl_private_key = '%s'\n" % (obj.mineos_key, ))
+            f.write("ssl_cert_chain = ''\n")
+            f.write("base_directory = '%s'" % (obj.mineos_basedir, ))
